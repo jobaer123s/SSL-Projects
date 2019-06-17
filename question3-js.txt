@@ -1,0 +1,46 @@
+// alert('hello')
+// function clickHere() {
+//     document.getElementById("click").style.display='block'
+// }
+// function clickHere() {
+//     const x = document.getElementById("click");
+//     if (x.style.display === "none") {
+//         x.style.display = "block";
+//     } else {
+//         x.style.display = "none";
+//     }
+// }
+
+function clickHere() {
+
+    document.getElementById("btn4").style.display='none'
+
+
+}
+
+
+function over() {
+
+    var x = document.getElementById("value").innerHTML;
+    var value = 0;
+    if (x > 0) {
+        value = x - 1;
+
+    }
+    document.getElementById("value").innerHTML = value
+}
+
+function out() {
+
+    return (alert('The match is over'));
+
+
+}
+
+
+function clickHere4() {
+
+    document.getElementById("btn4").style.display='block'
+
+
+}

@@ -1,0 +1,222 @@
+table-------------
+CREATE TABLE account(
+    id VARCHAR (255) PRIMARY KEY,
+    amount VARCHAR (255),
+    description VARCHAR (255),
+    income_cost VARCHAR (255),
+    created_date timestamp,
+    created_by VARCHAR (255),
+    is_chart  BOOLEAN
+
+);
+
+ALTER TABLE account ADD COLUMN is_chart  BOOLEAN
+
+
+controiller---------------------
+
+from flask import json, Blueprint, request, Response, redirect
+from datetime import *
+from src.entity.entity import db
+from src.dto.dto import ma
+
+
+from src.entity.DepartmentInformation import JobDepartmentInformation
+from src.dto.DepartmentInformationDto import JobDepartmentInformationDto
+
+
+departmentInformationController = Blueprint('departmentInformationController', __name__)
+departmentInformationDtoList = JobDepartmentInformationDto(many=True)
+departmentInformationDto = JobDepartmentInformationDto()
+
+
+@departmentInformationController.after_request
+def after_request(resp):
+    resp.headers['Access-Control-Allow-Origin'] = "*"
+    resp.headers['Access-Control-Allow-Methods'] = "POST, GET, OPTIONS, PUT, DELETE, PATCH"
+    resp.headers['Access-Control-Allow-Headers'] = "accessToken, content-type"
+    return resp
+
+
+@departmentInformationController.before_request
+def before_request():
+
+    if request.method == 'OPTIONS':
+        resp = Response(json.dumps({'status': 'success', 'message': 'success'}),status=200, mimetype='application/json')
+        resp.headers['Access-Control-Allow-Origin'] = "*"
+        resp.headers['Access-Control-Allow-Methods'] = "POST, GET, OPTIONS, PUT, DELETE, PATCH"
+        resp.headers['Access-Control-Allow-Headers'] = "accessToken, content-type"
+        return resp
+
+
+@departmentInformationController.route('/save', methods=['POST'])
+def departmentSave():
+    try:
+        print('departmentSave')
+
+        json_data = request.get_json(force=True)
+        print(' json: ', json_data)
+
+        if not json_data:
+            return Response(json.dumps({'status': 'failed', 'message': 'No input data provided.'}), status=200, mimetype='application/json')
+
+        # Validate and deserialize input
+        data, errors = departmentInformationDto.load(json_data)
+
+        print('data: ', data)
+        print('errors: ', errors)
+
+        if errors:
+            return Response(json.dumps({'status': 'failed', 'message': 'data failed to save. Invalid Data'}),
+                            status=200,  mimetype='application/json')
+
+        if (data['jobDepartmentName'] is None) or (data['jobDepartmentName'] == ''):
+
+            return Response(json.dumps({'status': 'failed', 'message': 'data failed to save. Empty Data'}),
+                            status=200, mimetype='application/json')
+
+        print('1111')
+
+        departmentName = JobDepartmentInformation.query.filter_by(jobDepartmentName=data['jobDepartmentName']).first()
+        print('departmentName: ', departmentName)
+        if departmentName:
+            return Response(json.dumps({'status': 'failed', 'message': 'department already exists.'}), status=200, mimetype='application/json')
+
+        try:
+            print('trying...')
+
+            # print('access token: ', request.headers.get('accessToken'))
+            # print('currentUser:', request.currentUser)
+            # print('currentUser id:', request.currentUser['userInfoId'])
+            # print('currentUser userName:', request.currentUser['userName'])
+
+            departmentInformation = JobDepartmentInformation(jobDepartmentName=data['jobDepartmentName'],
+                                                             detail=data['detail'])
+            db.session.add(departmentInformation)
+            db.session.commit()
+            result = departmentInformationDto.dump(departmentInformation).data
+            return Response(json.dumps({'status': 'success', 'message': 'data successfully saved.', 'data': result}), status=200, mimetype='application/json')
+
+        except Exception as ex:
+            print('rollback called...')
+            print(ex)
+            db.session.rollback()
+            return Response(json.dumps({'status': 'failed', 'message': 'data failed to save.'}), status=200, mimetype='application/json')
+
+    except Exception as e:
+        print(e)
+        return Response(json.dumps({'status': 'failed', 'message': 'data failed to save.'}), status=200, mimetype='application/json')
+
+
+    # finally:
+    #     print('finaly call......')
+    #     db.session.remove()
+
+
+@departmentInformationController.route('/getAll', methods=['GET'])
+def getAll():
+
+    try:
+        print('getAll controller')
+        departmentList = JobDepartmentInformation.query.all()
+        print("departmentList ", departmentList)
+
+        resultList = departmentInformationDtoList.dump(departmentList).data
+        print("resultList ", resultList)
+
+        return Response(json.dumps({'status': 'success', 'message': 'data Found', 'data': resultList}), status=200,
+                        mimetype='application/json')
+
+    except Exception as e:
+        print(e)
+        return Response(json.dumps({'status': 'failed', 'message': 'No data Found.',  'data': []}), status=200,
+                        mimetype='application/json')
+    # finally:
+    #     print('finaly call......')
+    #     db.session.remove()
+
+
+@departmentInformationController.route('/delete', methods=['DELETE'])
+def departmentDelete():
+    try:
+        print('department controller delete')
+
+        idForDelete = request.args.get('id', None)# if name empty then default value will be none
+        print('id: ', idForDelete)
+
+        if idForDelete is None:
+            return Response(json.dumps({'status': 'failed', 'message': 'No data provided to delete.'}), status=200, mimetype='application/json')
+
+        try:
+            print('trying...')
+
+            JobDepartmentInformation.query.filter(JobDepartmentInformation.id == idForDelete).delete()
+            db.session.commit()
+
+            return Response(json.dumps({'status': 'success', 'message': 'Data deleted successfully.'}), status=200, mimetype='application/json')
+        except Exception:
+            print('rollback called...')
+            db.session.rollback()
+            return Response(json.dumps({'status': 'failed', 'message': 'Failed to delete data.'}), status=200, mimetype='application/json')
+
+    except Exception as e:
+        print(e)
+        return Response(json.dumps({'status': 'failed', 'message': 'Failed to delete data.'}), status=200, mimetype='application/json')
+
+    # finally:
+    #     print('finaly call......')
+    #     db.session.remove()
+
+
+# update department
+
+@departmentInformationController.route('/update', methods=['PUT'])
+def deptUpdate():
+    try:
+        print('departmentUpdate controller update')
+        json_data = request.get_json(force=True)
+        print(' json: ', json_data)
+
+        if not json_data:
+            return Response(json.dumps({'status': 'failed', 'message': 'No input data provided to update.'}), status=200, mimetype='application/json')
+
+        # Validate and deserialize input
+        dataDeptDto, errors = departmentInformationDto.load(json_data)
+        print('datacat0Dto: ', dataDeptDto)
+        print('errors: ', errors)
+        if errors:
+            return Response(json.dumps({'status': 'failed', 'message': 'data failed to update.'}),
+                            status=200,
+                            mimetype='application/json')
+        # test duplicate name
+
+        name = JobDepartmentInformation.query.filter_by(jobDepartmentName=dataDeptDto['jobDepartmentName']).first()
+        print('JobDepartmentInformation: ', name)
+        if name:
+            return Response(json.dumps({'status': 'failed', 'message': 'Data already exists.'}), status=200,
+                            mimetype='application/json')
+
+        try:
+            print('update....')
+            db.session.query(JobDepartmentInformation).filter_by(id=dataDeptDto['id']).update({
+                    'jobDepartmentName': dataDeptDto['jobDepartmentName'],
+                    'detail': dataDeptDto['detail']
+                 })
+            db.session.commit()
+
+            return Response(json.dumps({'status': 'success', 'message': 'Successfully Updated.'}), status=200, mimetype='application/json')
+
+        except Exception as e:
+            print('rollback called ...', e)
+            db.session.rollback()
+            return Response(json.dumps({'status': 'failed', 'message': 'Category update failed. Please try again'}),  status=200, mimetype='application/json')
+
+    except Exception as e:
+        print(e)
+        return Response(json.dumps({'status': 'failed', 'message': 'data failed to updates.'}), status=200, mimetype='application/json')
+
+
+
+
+
+

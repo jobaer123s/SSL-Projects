@@ -1,0 +1,248 @@
+
+import React from 'react';
+import Link from 'next/link';
+import axios from "axios";
+import Button from '@material-ui/core/Button';
+import card from './Components/styles/settingCard.css';
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faStroopwafel } from '@fortawesome/free-solid-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
+import { faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons";
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import getConfig from 'next/config'
+import {confirmAlert} from "react-confirm-alert";
+import 'react-confirm-alert/src/react-confirm-alert.css'
+import CustomNotifier, { openCustomNotifierSnackbar } from './Components/CustomNotifier';
+import { Document, Page } from 'react-pdf';
+
+const config = getConfig();
+
+
+
+library.add(faTimes,fab,faStroopwafel,faPlus,faAngleRight,faTrash);
+
+class AccountList extends  React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            apiUrl:config.publicRuntimeConfig.publicRuntimeConfigValue.apiUrl,
+            accountList : [],
+        };
+        this.handelSelectedApplicantIdForDelete= this.handelSelectedApplicantIdForDelete.bind(this);
+
+        this.handleClickForDeleteApplicant = this.handleClickForDeleteApplicant.bind(this);
+        this.confirmDelete = this.confirmDelete.bind(this);
+
+    }
+
+
+    handelSelectedApplicantIdForDelete (applicantId) {  this.setState({ selectedApplicantIdForDelete: applicantId });    }
+
+
+
+
+    componentDidMount() {
+        console.log('componentDidMount colling ...');
+        this.getAccountList();
+    }
+
+
+
+    getAccountList = () => {
+        console.log('getAccountList...........');
+        axios.get( this.state.apiUrl+'/api/v1/account/getAll', {})
+            .then((response) => {
+                console.log("response",response.data.data);
+                this.setState({ accountList: response.data.data  });
+            }).catch((error)=>{  console.log("error",error); this.setState({ accountList: []  });   });
+    };
+
+    shortListUnshortListAccount = (accountCart,cartStatus) => {
+        console.log('shortListUnshortListApplicantStatus');
+        console.log(accountCart);
+        console.log(cartStatus);
+
+        axios.put( this.state.apiUrl+'/api/v1/account/accountShortlistUnshortlist', {
+            'is_chart':cartStatus,
+            'id': accountCart.id
+
+        }, {})
+            .then((response) => {
+                console.log("response",response);
+                if (response.data.status === "success") {
+                    this.getAccountList();
+                    openCustomNotifierSnackbar({message: response.data.message, duration: 3000, notifyType: 'success'});
+                }
+                if (response.data.status === "failed") {
+                    // this.setState({ ioRegFailedSnackBarOpen: true  });
+                    openCustomNotifierSnackbar({ message: response.data.message, duration:3000, notifyType: 'error' });
+                }
+
+            }).catch((error)=>{  console.log("error",error);   });
+    };
+
+    // delete dialogue
+
+    confirmDelete = () => {
+        confirmAlert({
+            customUI: ({ onClose }) => {
+                return (
+                    <div style={{backgroundColor:'#ed3f3f', height:'168px', width:'300px', textAlign:'center',
+                        color:'#fff', borderRadius:'5px', position:'absolute', top:'416px', left:'606px' }}>
+                        <h1 style={{}}>Are you sure?</h1>
+                        <p>You want to Remove This Applicant?</p>
+
+                        <button style={{color:'#ed3f3f', border:'0', cursor:'pointer', marginRight:'10px',
+                            padding:'4px 13px'}} onClick={onClose}>No</button>
+                        {/* This to be taken */}
+                        <button style={{color:'#ed3f3f', border:'0', cursor:'pointer', padding:'4px 20px'}}
+                                onClick={() => {this.handleClickForDeleteApplicant(); onClose()}}>  Yes, I'm Sure.</button>
+                    </div>
+                )
+            }
+        })
+    };
+
+    handleClickForDeleteApplicant() {
+        console.log('handleClickForDeleteApplicant: ');
+        console.log('applicantId: ', this.state.selectedApplicantIdForDelete);
+
+        axios.delete( this.state.apiUrl+'/api/v1/JobApply/delete',
+            {params: {id: this.state.selectedApplicantIdForDelete}})
+            .then((response) => {
+                console.log("response",response);
+                if (response.data.status === "success") {
+                    openCustomNotifierSnackbar({ message: response.data.message, duration:3000, notifyType: 'success' });
+                    this.getApplicantList();
+                }
+                if (response.data.status === "failed") {
+                    openCustomNotifierSnackbar({ message: response.data.message, duration:3000, notifyType: 'error' });
+                }
+            }).catch((error)=>{  console.log("error",error);   });
+
+    }
+
+    render() {
+        let accountCount = this.state.accountList.length;
+        let jobsWrapperStyle = {
+
+        }
+
+        let jobsContentStyle = {
+
+        }
+
+        if(accountCount >= 3) {
+            jobsWrapperStyle = {
+                height: '530px',
+                marginBottom: '50px'
+            }
+
+            jobsContentStyle = {
+                height: '530px',
+                overflow: 'auto'
+            }
+        }
+
+        const { pageNumber, numPages } = this.state;
+
+        return(
+            <div>
+
+
+
+                <div style={{ marginTop:'100px'}}>
+
+                    <CustomNotifier />
+
+                    <p style={{position:'absolute', top:'94px', left:'273px'}}>
+                        <Link prefetch href="/account">
+                            <a href="#" className="jhs"  style={{ fontSize: "12px",textDecoration: "none", color: "#EF5350"}}>
+                                Account
+                            </a>
+                        </Link>
+
+                        <FontAwesomeIcon icon={faAngleRight}   style={{ color: "#8a8888",  marginRight: "7px",marginLeft: "7px",  paddingTop: "2px"}}/>
+
+
+                    </p>
+
+
+
+                    <h1 className={card.cardTitle} style={{marginBottom:'60px'}} >Basic Account List</h1>
+
+                    <div style={{ marginTop:'100px', width:'970px', margin:'0 auto'}}>
+                        <p style={{marginBottom:'27px'}}>Total no. of Basic Accounts: <span style={{color:'rgb(239, 87, 84)'}}>{accountCount}</span>
+
+
+                            <Link prefetch href="/accountCart">
+                          <span style={{ color: "#EF5350" , fontSize:'13px', cursor:'pointer',float:'right', border:'1px solid',
+                              padding:'7px 11px',borderRadius:'2px'}}>Cart List</span>
+                            </Link>
+                        </p>
+
+
+                        <div className="jobsContentWrapper" style={jobsWrapperStyle}>
+                            <div className="jobsContent" style={jobsContentStyle}>
+                                <table style={{borderCollapse: 'collapse', marginTop:'100px', width:'970px', margin:'0 auto'}}>
+                                    <thead>
+                                    <tr style={{backgroundColor:'#efeeee'}}>
+                                        <th style={{border:'1px solid #ccc', padding:'14px', borderBottom:'1px solid #ccc'}}>
+                                            Add Cart</th>
+                                        <th style={{border:'1px solid #ccc', textAlign:'center',borderCollapse: 'collapse', padding:'12px'}}>cart Status</th>
+                                        <th style={{border:'1px solid #ccc', padding:'8px', borderBottom:'1px solid #ccc' }}>amount</th>
+                                        <th style={{border:'1px solid #ccc', padding:'8px', borderBottom:'1px solid #ccc' }}>description</th>
+                                        <th style={{border:'1px solid #ccc', padding:'14px 5px', borderBottom:'1px solid #ccc'}}> income_cost</th>
+
+                                    </tr>
+                                    </thead>
+                                    {/* 1st item */}
+
+                                    <tbody>
+                                    {
+                                        this.state.accountList.map((account, key) =>
+                                            <tr key={ key }>
+
+
+                                                <td style={{border:'1px solid #ccc',borderCollapse: 'collapse', padding:'11px 10px' , textAlign:'center', position:'relative'}}>
+
+                                                    {
+                                                        account.is_chart===true ?
+                                                            <Button className={card.unpublish}  type="button" variant="contained"  onClick={() => {this.shortListUnshortListAccount(account,false)}}> Remove Cart</Button>
+                                                            : <Button className={card.publish}  type="button" variant="contained"  onClick={() => {this.shortListUnshortListAccount(account,true)}}> Add Cart</Button>
+                                                    }
+
+
+
+                                                    {/*<div><pre>{JSON.stringify(applicant, null, 2) }</pre></div>*/}
+                                                </td>
+                                                <td style={{border:'1px solid #ccc', padding:'5px',textAlign:'center',width:'150px'}}>{account.is_chart===true?'Yes':'No'}</td>
+
+                                                <td style={{border:'1px solid #ccc', padding:'5px',textAlign:'center',width:'150px'}}>{account.amount}</td>
+                                                <td style={{border:'1px solid #ccc', padding:'5px',textAlign:'center',width:'150px'}}>{account.description}</td>
+                                                <td style={{border:'1px solid #ccc', padding:'5px',textAlign:'center',width:'150px'}}>{account.income_cost}</td>
+
+
+                                            </tr>
+                                        )
+
+                                    }
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        )
+    }
+}
+
+export default AccountList;

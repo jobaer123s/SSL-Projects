@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="main.js"></script>
+</head>
+<body>
+
+    <div style="text-align: center">
+        <h1>over count</h1>
+<!--        <button  onclick="clickHere4()">show all</button>-->
+
+<!--        <button onclick="clickHere()" id="btn4" style="display: none" >click me to remove</button>-->
+
+
+        <p id="click" style="display: none">show me</p>
+        <button style="padding: 10px 90px; border:0; background-color: #ef5350; color: #fff; margin-bottom: 10px" onclick="over()" id="value">6</button><br/>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff" onclick="over()" id="value1">1</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff" onclick="over()" id="value2">2</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff" onclick="over()" id="value3">3</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff" onclick="over()" id="value4">4</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff" onclick="over()" id="value5">5</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff; margin-bottom: 10px" onclick="over()" id="value6">6</button><br/>
+
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff"  onclick=" out()">Bowled</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff"  onclick=" out()">Run Out</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff"  onclick=" out()">Caught</button>
+        <button style="padding: 10px; border:0; background-color: #ef5350; color: #fff"  onclick=" out()">Stumps</button>
+    </div>
+
+</body>
+</html>

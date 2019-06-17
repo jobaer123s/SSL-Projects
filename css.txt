@@ -1,0 +1,22 @@
+.publish{
+    box-shadow: 0 0 0 0 !important;
+    padding: 0px 0px !important;
+    color: #fff !important;
+    background:rgb(96, 174, 109) !important;
+    width: 92px !important;
+    text-transform: capitalize !important;
+
+
+
+}
+
+.unpublish{
+    box-shadow: 0 0 0 0 !important;
+    padding: 0px 0px !important;
+    color: #fff !important;
+    background: #ada86b  !important;
+    width: 113px !important;
+    text-transform: capitalize !important;
+
+
+}
